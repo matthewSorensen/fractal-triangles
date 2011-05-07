@@ -13,9 +13,9 @@
 
 
 void allocateImageData(size_t width,char** state, char** img_buff){
-  *state = (char*) malloc(sizeof(char)*width);
+  *state = (char*) malloc(sizeof(char)*width+3);
   *img_buff = (char*) malloc(sizeof(char)*width*3+1);
-  memset(*state, 0, width);
+  memset(*state, 0, width+3);
   memset(*img_buff, 255, width*3);
 }
 
@@ -34,7 +34,7 @@ void writeLine(size_t width, char* state, char* buff, FILE* file){
   int i;
   char* dest = buff;
   for(i = 0; i < width; i++){
-    *((int*)dest) = colors[state[i]];
+    *((int*)dest) = colors[state[i]&15];
     dest += 3;
   }
   // Now we need to write the image data to the file:
@@ -45,9 +45,11 @@ void writeLine(size_t width, char* state, char* buff, FILE* file){
   fwrite(buff + width, 1, rem, file);
 }
 
+#define ODD 1
+#define EVEN 0
 
-void impulse(size_t width,char* state){
-  state[(width>>1)-1] = 1;
+void impulse(size_t width,char* state,int type){
+  state[(width>>type)-1] = 1;
 }
 
 
@@ -66,10 +68,11 @@ void trinomial (size_t width, char* state, char modulo){
   for(i=0;i<width;i++){
     char tmp = state[i];
     char new = tmp + old + state[i+1];
-    if(modulo <= new)
+    if(modulo <= new){
       new -= modulo;
-    if(modulo <= new)
-      new -= modulo;
+      if(modulo <= new)
+	new -= modulo;
+    }
     state[i] = new;
     old = tmp;
   }
@@ -77,13 +80,27 @@ void trinomial (size_t width, char* state, char modulo){
 
 
 
+void quartic(size_t width, char* state, char modulo){
+  int i;
+  for(i=0;i<width;i++){
+    char new = state[i];
+    int j;
+    for(j=1; j<4;j++){
+      new += state[i+j];
+      if(modulo <= new)
+	new -= modulo;
+    }
+    state[i] = new;;
+  }
+}
+
+
 int main(){
   int i,j;
 
   char* state, *image;
   allocateImageData(X_SIZE, &state, &image);
-  impulse(X_SIZE, state);
-
+  impulse(X_SIZE, state,EVEN);
 
   FILE* img = fopen("test.ppm","w");
   writeHeader(img,X_SIZE,Y_SIZE);
@@ -91,7 +108,7 @@ int main(){
  
   for(i=0;i<Y_SIZE;i++){
     writeLine(X_SIZE, state, image, img);
-    trinomial(X_SIZE, state,16);
+    quartic(X_SIZE, state,32);
   }
   fclose(img);
   return 0;
