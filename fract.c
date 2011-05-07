@@ -3,8 +3,8 @@
 #include <string.h>
 
 
-#define X_SIZE 4000
-#define Y_SIZE 4000
+#define X_SIZE 10000
+#define Y_SIZE 5000
 #define writeHeader(file,x,y) fprintf((file),"P6  %d %d 255 ",(x),(y));
 
 
@@ -20,13 +20,21 @@ void allocateImageData(size_t width,char** state, char** img_buff){
 }
 
 
+
+#define RGB(r,g,b) ((b<<16)|(g<<8)|r)
+
+int colors[16] = {RGB(255,255,255),RGB(34,8,118),RGB(35,9,122),RGB(37,10,126),
+		  RGB(39,10,130),RGB(40,11,134),RGB(42,12,138),RGB(44,13,142),
+		  RGB(45,14,147),RGB(47,15,151),RGB(49,16,155),RGB(50,17,159),
+		  RGB(52,17,163),RGB(54,18,167),RGB(55,19,171),RGB(57,20,175)};
+
+
 void writeLine(size_t width, char* state, char* buff, FILE* file){
   //Create the new image buffer, into buff
   int i;
   char* dest = buff;
   for(i = 0; i < width; i++){
-    int color = state[i] ? 0x000000:0xffFFff; // Where red is the least significant byte, then green, then red.
-    *((int*)dest) = color;
+    *((int*)dest) = colors[state[i]];
     dest += 3;
   }
   // Now we need to write the image data to the file:
@@ -83,7 +91,7 @@ int main(){
  
   for(i=0;i<Y_SIZE;i++){
     writeLine(X_SIZE, state, image, img);
-    trinomial(X_SIZE, state,15);
+    trinomial(X_SIZE, state,16);
   }
   fclose(img);
   return 0;
