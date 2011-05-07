@@ -4,7 +4,7 @@
 
 #define writeHeader(file,x,y) fprintf((file),"P6  %d %d 255 ",(x),(y));
 
-void allocateImageData(size_t width,char** state, char** img_buff){
+void allocateImageData(size_t width,unsigned char** state, unsigned char** img_buff){
   *state = (char*) malloc(sizeof(char)*width+3);
   *img_buff = (char*) malloc(sizeof(char)*width*3+1);
   memset(*state, 0, width+3);
@@ -20,9 +20,9 @@ int colors[16] = {RGB(255,255,255),RGB(34,8,118),RGB(35,9,122),RGB(37,10,126),
 		  RGB(45,14,147),RGB(47,15,151),RGB(49,16,155),RGB(50,17,159),
 		  RGB(52,17,163),RGB(54,18,167),RGB(55,19,171),RGB(57,20,175)};
 
-void writeLine(size_t width, char* state, char* buff, FILE* file){
+void writeLine(size_t width, unsigned char* state, unsigned char* buff, FILE* file){
   int i;
-  char* dest = buff;
+  unsigned char* dest = buff;
   for(i = 0; i < width; i++){
     *((int*)dest) = colors[state[i]&15];
     dest += 3;
@@ -34,24 +34,25 @@ void writeLine(size_t width, char* state, char* buff, FILE* file){
   fwrite(buff + width, 1, rem, file);
 }
 
-void impulse(size_t width,char* state,int type){
+void impulse(size_t width, unsigned char* state,int type){
   state[(width>>type)-1] = 1;
 }
 
-void binomial(size_t width, char* state, char modulo){
+void binomial(size_t width, unsigned char* state, unsigned char modulo){
   int i;
   for(i=0;i<width;i++){
-    char new = state[i]+state[i+1];
-    state[i] = modulo <= new? new-modulo:new;
+    state[i] += state[i+1];
+    if(modulo <= state[i])
+      state[i] -= modulo; 
   }
 }
 
-void trinomial (size_t width, char* state, char modulo){
-  char old=0;
+void trinomial (size_t width,unsigned  char* state,unsigned  char modulo){
+  unsigned char old=0;
   int i;
   for(i=0;i<width;i++){
-    char tmp = state[i];
-    char new = tmp + old + state[i+1];
+    unsigned char tmp = state[i];
+    unsigned char new = tmp + old + state[i+1];
     if(modulo <= new){
       new -= modulo;
       if(modulo <= new)
@@ -62,10 +63,10 @@ void trinomial (size_t width, char* state, char modulo){
   }
 }
 
-void quartic(size_t width, char* state, char modulo){
+void quartic(size_t width, unsigned char* state, unsigned char modulo){
   int i;
   for(i=0;i<width;i++){
-    char new = state[i];
+    unsigned char new = state[i];
     int j;
     for(j=1; j<4;j++){
       new += state[i+j];
@@ -76,12 +77,13 @@ void quartic(size_t width, char* state, char modulo){
   }
 }
 
-void (*triangles[3])(size_t,char*,char) = {binomial,trinomial,quartic};
+
+void (*triangles[3])(size_t,unsigned char*,unsigned char) = {binomial,trinomial,quartic};
 
 int main(int argc, char** argv){
   unsigned int i, wide, high, degree, modulus;
-  char* state, *image;
-  void (*update)(size_t,char*,char);
+  unsigned char* state, *image;
+  void (*update)(size_t,unsigned char*,unsigned char);
   FILE* img;
   
   if(argc < 5){
@@ -90,7 +92,7 @@ int main(int argc, char** argv){
   }
 
   degree  = atoi(argv[2]);
-  if(4 < degree){
+  if(4 < degree || degree < 2){
     puts("Invalid degree");
     exit(1);
   }
@@ -112,7 +114,7 @@ int main(int argc, char** argv){
 
   for(i=0; i<high; i++){
     writeLine(wide, state, image, img);
-    update(wide, state,32);
+    update(wide, state, modulus);
   }
 
   fclose(img);
