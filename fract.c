@@ -2,15 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-#define X_SIZE 10000
-#define Y_SIZE 5000
 #define writeHeader(file,x,y) fprintf((file),"P6  %d %d 255 ",(x),(y));
-
-
-
-
-
 
 void allocateImageData(size_t width,char** state, char** img_buff){
   *state = (char*) malloc(sizeof(char)*width+3);
@@ -28,16 +20,13 @@ int colors[16] = {RGB(255,255,255),RGB(34,8,118),RGB(35,9,122),RGB(37,10,126),
 		  RGB(45,14,147),RGB(47,15,151),RGB(49,16,155),RGB(50,17,159),
 		  RGB(52,17,163),RGB(54,18,167),RGB(55,19,171),RGB(57,20,175)};
 
-
 void writeLine(size_t width, char* state, char* buff, FILE* file){
-  //Create the new image buffer, into buff
   int i;
   char* dest = buff;
   for(i = 0; i < width; i++){
     *((int*)dest) = colors[state[i]&15];
     dest += 3;
   }
-  // Now we need to write the image data to the file:
   width *= 3;
   size_t rem = width & 3;
   width -= rem;
@@ -87,30 +76,45 @@ void quartic(size_t width, char* state, char modulo){
   }
 }
 
-
 void (*triangles[3])(size_t,char*,char) = {binomial,trinomial,quartic};
 
-
-int main(){
-  int i,degree;
+int main(int argc, char** argv){
+  unsigned int i, wide, high, degree, modulus;
   char* state, *image;
   void (*update)(size_t,char*,char);
   FILE* img;
+  
+  if(argc < 5){
+    puts("usage: <filename.ppm> <multinomial degree> <modulus> <image size, \"500x400\">");
+    exit(1);
+  }
 
+  degree  = atoi(argv[2]);
+  if(4 < degree){
+    puts("Invalid degree");
+    exit(1);
+  }
 
-  degree = 4;
+  modulus = atoi(argv[3]);
+  img = fopen(argv[1],"w");
   update = triangles[degree-2];
 
-  allocateImageData(X_SIZE, &state, &image);
-  impulse(X_SIZE, state, degree & 1);
 
-  img = fopen("test.ppm","w");
-  writeHeader(img,X_SIZE,Y_SIZE);
-  for(i=0;i<Y_SIZE;i++){
-    writeLine(X_SIZE, state, image, img);
-    update(X_SIZE, state,32);
+  i = sscanf(argv[4],"%ux%u",&wide,&high);
+  if(i < 2){
+    puts("Invalid image dimensions");
+    exit(1);
   }
-  fclose(img);
 
+  allocateImageData(wide, &state, &image);
+  impulse(wide, state, degree & 1);
+  writeHeader(img, wide, high);
+
+  for(i=0; i<high; i++){
+    writeLine(wide, state, image, img);
+    update(wide, state,32);
+  }
+
+  fclose(img);
   return 0;
 }
