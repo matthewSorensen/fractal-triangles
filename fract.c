@@ -3,8 +3,8 @@
 #include <string.h>
 
 
-#define X_SIZE 400
-#define Y_SIZE 400
+#define X_SIZE 4000
+#define Y_SIZE 4000
 #define writeHeader(file,x,y) fprintf((file),"P6  %d %d 255 ",(x),(y));
 
 
@@ -38,18 +38,34 @@ void writeLine(size_t width, char* state, char* buff, FILE* file){
 }
 
 
+void impulse(size_t width,char* state){
+  state[width-1] = 1;
+}
+
+
+void update(size_t width, char* state, char modulo){
+  int i;
+  for(i=0;i<width;i++){
+    char new = state[i]+state[i+1];
+    state[i] = modulo <= new? new-modulo:new;
+  }
+}
+
 int main(){
   int i,j;
 
   char* state, *image;
   allocateImageData(X_SIZE, &state, &image);
- 
+  impulse(X_SIZE, state);
+
+
   FILE* img = fopen("test.ppm","w");
   writeHeader(img,X_SIZE,Y_SIZE);
 
  
   for(i=0;i<Y_SIZE;i++){
     writeLine(X_SIZE, state, image, img);
+    update(X_SIZE, state,2);
   }
   fclose(img);
   return 0;
