@@ -57,7 +57,12 @@ void trinomial (size_t width, char* state, char modulo){
   int i;
   for(i=0;i<width;i++){
     char tmp = state[i];
-    state[i] = (tmp + old + state[i+1]) & 15;
+    char new = tmp + old + state[i+1];
+    if(modulo <= new)
+      new -= modulo;
+    if(modulo <= new)
+      new -= modulo;
+    state[i] = new;
     old = tmp;
   }
 }
@@ -78,7 +83,7 @@ int main(){
  
   for(i=0;i<Y_SIZE;i++){
     writeLine(X_SIZE, state, image, img);
-    trinomial(X_SIZE, state,16);
+    trinomial(X_SIZE, state,15);
   }
   fclose(img);
   return 0;
