@@ -45,13 +45,9 @@ void writeLine(size_t width, char* state, char* buff, FILE* file){
   fwrite(buff + width, 1, rem, file);
 }
 
-#define ODD 1
-#define EVEN 0
-
 void impulse(size_t width,char* state,int type){
   state[(width>>type)-1] = 1;
 }
-
 
 void binomial(size_t width, char* state, char modulo){
   int i;
@@ -60,7 +56,6 @@ void binomial(size_t width, char* state, char modulo){
     state[i] = modulo <= new? new-modulo:new;
   }
 }
-
 
 void trinomial (size_t width, char* state, char modulo){
   char old=0;
@@ -78,8 +73,6 @@ void trinomial (size_t width, char* state, char modulo){
   }
 }
 
-
-
 void quartic(size_t width, char* state, char modulo){
   int i;
   for(i=0;i<width;i++){
@@ -95,21 +88,29 @@ void quartic(size_t width, char* state, char modulo){
 }
 
 
+void (*triangles[3])(size_t,char*,char) = {binomial,trinomial,quartic};
+
+
 int main(){
-  int i,j;
-
+  int i,degree;
   char* state, *image;
+  void (*update)(size_t,char*,char);
+  FILE* img;
+
+
+  degree = 4;
+  update = triangles[degree-2];
+
   allocateImageData(X_SIZE, &state, &image);
-  impulse(X_SIZE, state,EVEN);
+  impulse(X_SIZE, state, degree & 1);
 
-  FILE* img = fopen("test.ppm","w");
+  img = fopen("test.ppm","w");
   writeHeader(img,X_SIZE,Y_SIZE);
-
- 
   for(i=0;i<Y_SIZE;i++){
     writeLine(X_SIZE, state, image, img);
-    quartic(X_SIZE, state,32);
+    update(X_SIZE, state,32);
   }
   fclose(img);
+
   return 0;
 }
