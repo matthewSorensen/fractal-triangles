@@ -39,17 +39,30 @@ void writeLine(size_t width, char* state, char* buff, FILE* file){
 
 
 void impulse(size_t width,char* state){
-  state[width-1] = 1;
+  state[(width>>1)-1] = 1;
 }
 
 
-void update(size_t width, char* state, char modulo){
+void binomial(size_t width, char* state, char modulo){
   int i;
   for(i=0;i<width;i++){
     char new = state[i]+state[i+1];
     state[i] = modulo <= new? new-modulo:new;
   }
 }
+
+
+void trinomial (size_t width, char* state, char modulo){
+  char old=0;
+  int i;
+  for(i=0;i<width;i++){
+    char tmp = state[i];
+    state[i] = (tmp + old + state[i+1]) & 15;
+    old = tmp;
+  }
+}
+
+
 
 int main(){
   int i,j;
@@ -65,7 +78,7 @@ int main(){
  
   for(i=0;i<Y_SIZE;i++){
     writeLine(X_SIZE, state, image, img);
-    update(X_SIZE, state,2);
+    trinomial(X_SIZE, state,16);
   }
   fclose(img);
   return 0;
