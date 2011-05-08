@@ -12,24 +12,19 @@ void allocateImageData(size_t width,unsigned char** state, unsigned char** img_b
 }
 
 
+#define colorTable c1(0),c1(64),c1(128),c1(192)
+#define c1(x) c2(0+x),c2(16+x),c2(32+x),c2(48+x)
+#define c2(x) c3((x)+0),c3((x)+4),c3((x)+8),c3((x)+12)
+#define c3(x) toColor((x)+0),toColor((x)+1),toColor((x)+2),toColor((x)+3)
+#define toColor(x) ((x)==0? 0x00ffFFff:(255-(x))<<16)
 
-#define RGB(r,g,b) ((b<<16)|(g<<8)|r)
+unsigned int colors[256] = {colorTable};
 
-
-
-/*
-// Uncomment this for an incomplete method for coloring pixels.
-int colors[16] = {RGB(255,255,255),RGB(34,8,118),RGB(35,9,122),RGB(37,10,126),
-		  RGB(39,10,130),RGB(40,11,134),RGB(42,12,138),RGB(44,13,142),
-		  RGB(45,14,147),RGB(47,15,151),RGB(49,16,155),RGB(50,17,159),
-		  RGB(52,17,163),RGB(54,18,167),RGB(55,19,171),RGB(57,20,175)};
-*/
 void writeLine(size_t width, unsigned char* state, unsigned char* buff, FILE* file){
   int i;
   unsigned char* dest = buff;
   for(i = 0; i < width; i++){
-    *((int*)dest) = state[i]? RGB(0,0,0):RGB(255,255,255); 
-    /*    *((int*)dest) = colors[state[i]&15]; //Uncomment this too */
+    *((int*)dest) = colors[state[i]]; 
     dest += 3;
   }
   width *= 3;
