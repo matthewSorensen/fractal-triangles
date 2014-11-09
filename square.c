@@ -1,6 +1,25 @@
 #include<stdio.h>
 #include <string.h>
 
+
+unsigned int ones(int x, int n){
+  unsigned int acc = 0;
+  unsigned int bit = 1;
+
+  if(x < 0 || n <= x) return 0xFFFFFFFFFFFF; // ...lots of ones...
+
+  while(x > 0){
+    int q = x / 3;
+    int r = x - 3*q;
+
+    if(r == 1) acc |= bit;
+    bit = bit << 1;
+    x = q;
+  }
+
+  return acc;
+}
+
 int is_in2(int x, int y){
   while(x > 0 && y > 0){
     int qx = x / 3;
@@ -54,6 +73,24 @@ void square(int i, int j, int k, int n, FILE* fp, int dir){
   }
 }
 
+int in(int zones, int yones, int x, int n){
+  if(x < 0 || n <= x) return 0;
+
+  if(zones & yones) return 0;
+  zones |= yones;
+  while(x > 0){
+    int q = x / 3;
+    int r = x - q * 3;
+    
+    if(r == 1 && (zones & 1))
+      return 0;
+    zones = zones >> 1;
+    x = q;
+  }
+  return 1;
+}
+
+
 int main(int argc, char** argv){
   int n = 27*9;
   // Now we take each cube and generate triangles...
@@ -62,12 +99,19 @@ int main(int argc, char** argv){
   memset(header, 0, 84);
   int count = 0;
   fwrite(&header,sizeof(char), 84, fp);
-  for(int j = -1; j < n; j++){ 
-    for(int k = -1; k < n; k++){
+  for(int j = 0; j < n; j++){ 
+    int zones = ones(j,n);
+
+    for(int k = 0; k < n; k++){
+      int yones = ones(k,n);
+
+      if(zones & yones) continue;
+
+
       int i = -1;
-      int status =  is_in(i,j,k,n);
+      int status = in(zones,yones, i, n); // is_in(i,j,k,n);
       for(; i < n; i++){
-	int next = is_in(i+1,j,k,n);
+	int next = in(zones, yones, i+ 1, n);
 	if(status ^  next){
 	  square(i,j,k,n,fp, status);
 	  count += 6;
