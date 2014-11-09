@@ -55,23 +55,24 @@ void square(int i, int j, int k, int n, FILE* fp, int dir){
 }
 
 int main(int argc, char** argv){
-  int n = 3;
+  int n = 27*9;
   // Now we take each cube and generate triangles...
   FILE* fp = fopen("test.stl","w");
   char header[84];
   memset(header, 0, 84);
   int count = 0;
   fwrite(&header,sizeof(char), 84, fp);
-  for(int i = -1; i < n; i++){
-    for(int j = -1; j < n; j++){ 
-      for(int k = -1; k < n; k++){
-	int status = is_in(i,j,k,n);
-
-	if(status ^  is_in(i+1,j,k,n)){
+  for(int j = -1; j < n; j++){ 
+    for(int k = -1; k < n; k++){
+      int i = -1;
+      int status =  is_in(i,j,k,n);
+      for(; i < n; i++){
+	int next = is_in(i+1,j,k,n);
+	if(status ^  next){
 	  square(i,j,k,n,fp, status);
 	  count += 6;
 	}
-
+	status = next;
       }
     }
   }
