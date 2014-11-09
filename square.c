@@ -19,8 +19,8 @@ unsigned int ones(int x){
 }
 
 int rotations[18] = {0, 1, 2,   1, 0, 2,   2, 1, 0};
-float delta[18] = {1.0, 0, 1.0, 1.0, 0, 0, 1.0, 1.0, 0,
-		   1.0, 0, 1.0, 1.0, 1.0, 0, 1.0, 1.0, 1.0};
+float delta[18] = {0.0, 0, 1.0,    0.0, 0, 0,   0.0, 1.0, 0,
+		   0.0, 0, 1.0,    0.0, 1.0, 0,  0.0, 1.0, 1.0};
 float normal[3] = {0,0,0};
 int normal_rot[18] = {1,0,2, 0,1,2,  0,1,2, 1,0,2, 0,1,2, 1,0,2 };
 
@@ -49,9 +49,7 @@ void square(int i, int j, int k, int n, FILE* fp, int dir){
   }
 }
 
-int in_set(int ones, int x, int n){
-  if(x < 0 || n <= x) return 0;
-
+int in_set(int ones, int x){
   while(x > 0){
     int q = x / 3;
     int r = x - q * 3;
@@ -82,16 +80,22 @@ int main(int argc, char** argv){
 	continue;
 
       yones |= zones;
-
+      
       int status = 0; 
-      for(int i = -1; i < n; i++){
-	int next = in_set(yones, i + 1, n);
+      for(int i = 0; i < n; i++){
+	int next = in_set(yones, i);
 	if(status ^  next){
 	  square(i,j,k,n,fp, status);
 	  count += 6;
 	}
 	status = next;
       }
+
+      if(status){
+	square(n,j,k,n,fp, status);
+	count += 6;
+      }
+
     }
   }
 
