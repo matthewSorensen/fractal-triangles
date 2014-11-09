@@ -22,19 +22,13 @@ int is_in(int x, int y, int z, int n){
 
 
 int rotations[9] = {0, 1, 2, 1, 0, 2, 2, 1, 0};
+float delta[18] = {1.0, 0, 1.0, 1.0, 0, 0, 1.0, 1.0, 0,
+		   1.0, 1.0, 1.0, 1.0, 1.0, 0, 1.0, 0, 1.0};
 
-void vertex(int i, int j, int k, int n){
-  float x = (float) i - ((float) n) / 2.0;
-  float y = (float) j - ((float) n) / 2.0;
-  float z = (float) k - ((float) n) / 2.0;
-  printf("vertex %f %f %f\n", x, y, z);
-}
 
 void square(int i, int j, int k, int n){
   float half = ((float) n) / -2.0;
   float vect[3] = {half + (float) i, half + (float) j, half + (float) k};
-  float delta[18] = {1.0, 0, 1.0, 1.0, 0, 0, 1.0, 1.0, 0,
-		    1.0, 1.0, 1.0, 1.0, 1.0, 0, 1.0, 0, 1.0};
   // Print half of the thingy
   for(int rot = 0; rot < 9; rot += 3){
     for(int half = 0; half < 18; half += 9){
