@@ -25,7 +25,7 @@ int is_in(int x, int y, int z, int n){
 
 int rotations[9] = {0, 1, 2, 1, 0, 2, 2, 1, 0};
 float delta[18] = {1.0, 0, 1.0, 1.0, 0, 0, 1.0, 1.0, 0,
-		   1.0, 1.0, 1.0, 1.0, 1.0, 0, 1.0, 0, 1.0};
+		   1.0, 0, 1.0, 1.0, 1.0, 0, 1.0, 1.0, 1.0};
 float normal[3] = {0,0,0};
 
 void square(int i, int j, int k, int n, FILE* fp){
