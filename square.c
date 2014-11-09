@@ -2,11 +2,9 @@
 #include <string.h>
 
 
-unsigned int ones(int x, int n){
+unsigned int ones(int x){
   unsigned int acc = 0;
   unsigned int bit = 1;
-
-  if(x < 0 || n <= x) return 0xFFFFFFFFFFFF; // ...lots of ones...
 
   while(x > 0){
     int q = x / 3;
@@ -19,28 +17,6 @@ unsigned int ones(int x, int n){
 
   return acc;
 }
-
-int is_in2(int x, int y){
-  while(x > 0 && y > 0){
-    int qx = x / 3;
-    int qy = y / 3;
-    int rx = x - 3 * qx;
-    int ry = y - 3 * qy;
-    if(rx == 1 && ry == 1)
-      return 0;
-    x = qx;
-    y = qy;
-  }
-  return 1;
-}
-int is_in(int x, int y, int z, int n){
-  // also put explicit bounds on the box here, 
-  // so as to handle edge cases effectively
-  if(x < 0 || y < 0 || z < 0) return 0;
-  if(n <= x || n <= y || n <= z) return 0;
-  return is_in2(x,y) && is_in2(z,y) && is_in2(x,z);
-}
-
 
 int rotations[18] = {0, 1, 2,   1, 0, 2,   2, 1, 0};
 float delta[18] = {1.0, 0, 1.0, 1.0, 0, 0, 1.0, 1.0, 0,
@@ -73,26 +49,23 @@ void square(int i, int j, int k, int n, FILE* fp, int dir){
   }
 }
 
-int in(int zones, int yones, int x, int n){
+int in_set(int ones, int x, int n){
   if(x < 0 || n <= x) return 0;
 
-  if(zones & yones) return 0;
-  zones |= yones;
   while(x > 0){
     int q = x / 3;
     int r = x - q * 3;
     
-    if(r == 1 && (zones & 1))
+    if(r == 1 && (ones & 1))
       return 0;
-    zones = zones >> 1;
+    ones = ones >> 1;
     x = q;
   }
   return 1;
 }
 
-
 int main(int argc, char** argv){
-  int n = 27*9;
+  int n = 27;
   // Now we take each cube and generate triangles...
   FILE* fp = fopen("test.stl","w");
   char header[84];
@@ -100,18 +73,19 @@ int main(int argc, char** argv){
   int count = 0;
   fwrite(&header,sizeof(char), 84, fp);
   for(int j = 0; j < n; j++){ 
-    int zones = ones(j,n);
+    int zones = ones(j);
 
     for(int k = 0; k < n; k++){
-      int yones = ones(k,n);
+      int yones = ones(k);
 
-      if(zones & yones) continue;
+      if(zones & yones) 
+	continue;
 
+      yones |= zones;
 
-      int i = -1;
-      int status = in(zones,yones, i, n); // is_in(i,j,k,n);
-      for(; i < n; i++){
-	int next = in(zones, yones, i+ 1, n);
+      int status = 0; 
+      for(int i = -1; i < n; i++){
+	int next = in_set(yones, i + 1, n);
 	if(status ^  next){
 	  square(i,j,k,n,fp, status);
 	  count += 6;
